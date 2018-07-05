@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tennis game</title>
+</head>
+<body>
+<input name="btn" onclick="requestAnimationFrame(draw);" type="button" value="старт!" style="font-size: 20px; padding:0 20px; border: none;">
+<div id='score' style="width: 90px;height: 60px; display:inline-block;margin:0 180px;font-size: 50px;"></div>
+<div id ='field' style="width: 600px;height: 400px;background: #ffcf08;position: relative; overflow: hidden;" ></div>
+<script>
+
+    const field = document.getElementById('field');
+    const score = document.getElementById('score');
+    let scoreGreenGamer = 0;
+    let scoreBlueGamer = 0;
+    const btn = document.getElementsByName('btn')[0];
+    const ball = document.createElement('div');
+    const racketGreen = document.createElement('div');
+    const racketBlue = document.createElement('div');
+    let speedX = 5;
+    let speedY = 7;
+    let posBallX = 300;
+    let posBallY = 200 + Math.floor(Math.random()*10);
+    let posRacketGreenY = (field.clientHeight - racketGreen.clientHeight)/2;
+    let posRacketBlueY = (field.clientHeight - racketGreen.clientHeight)/2;
+    let pressedShift = false;
+    let pressedCtrl = false;
+    let pressedArrowUp = false;
+    let pressedArrowDown = false;
+    racketBlue.setAttribute('style', 'width: 10px;height: 120px;background: blue;position:absolute;');
+    racketGreen.setAttribute('style', 'width: 10px;height: 120px;background: green;position:absolute;');
+    ball.setAttribute('style', 'width: 30px;height: 30px;background: red; border-radius:20px;position:absolute;');
+    field.appendChild(ball);
+    field.appendChild(racketGreen);
+    field.appendChild(racketBlue);
+    score.textContent = scoreGreenGamer + ":" + scoreBlueGamer;
+
+
+    function runInto(side) {
+        let pointsBallY = [posBallY,posBallY + ball.clientHeight],
+            pointsRacketY;
+        if(side === 'rightLine'){
+            pointsRacketY = [posRacketBlueY, posRacketBlueY + racketBlue.clientHeight];
+            if(pointsBallY[0] > pointsRacketY[1] || pointsBallY[1] < pointsRacketY[0]){
+                return false;
+            }
+            else return true;
+        }
+        else{
+            pointsRacketY = [posRacketGreenY,posRacketGreenY + racketGreen.clientHeight];
+            if(pointsBallY[0] > pointsRacketY[1] || pointsBallY[1] < pointsRacketY[0]){
+                return false;
+            }
+            else return true;
+        }
+    }
+
+    function scoreUpdate() {
+        if(ball.offsetLeft === 0){
+            scoreGreenGamer+=1;
+        }
+        else {
+            scoreBlueGamer+=1;
+        }
+    }
+
+    function draw() {
+        posBallX += speedX;
+        posBallY += speedY;
+
+        if(posBallX + speedX + ball.clientWidth > field.clientWidth - racketBlue.clientWidth){  //движение мяча
+            if(runInto('rightLine')){
+                speedX = -5;
+                speedY += Math.floor(Math.random()*10); //меняем направление
+            }
+        }
+        else if(posBallX + speedX < racketGreen.clientWidth){
+            if(runInto('leftLine')){
+                speedX = 5;
+                speedY += Math.floor(Math.random()*10); //меняем направление
+            }
+        }
+        else if(posBallY + speedY + ball.clientHeight > field.clientHeight){
+            speedY = -7;
+        }
+        else if(posBallY + speedY < 0){
+            speedY = 7;
+        }
+
+        ball.style.left =  posBallX + 'px';
+        ball.style.top =  posBallY + 'px';
+
+
+        if(pressedShift && posRacketGreenY > 0){   //движение зеленой ракетки слева
+            posRacketGreenY -=7;
+        }
+        else if(pressedCtrl && posRacketGreenY < field.clientHeight - racketGreen.clientHeight ){
+            posRacketGreenY +=7;
+        }
+
+        racketGreen.style.top = posRacketGreenY + 'px';
+        racketGreen.style.left = '0px';
+
+        if(pressedArrowUp && posRacketBlueY > 0){   //движение синей ракетки справа
+            posRacketBlueY -=7;
+        }
+        else if(pressedArrowDown && posRacketBlueY < field.clientHeight - racketBlue.clientHeight ){
+            posRacketBlueY +=7;
+        }
+        racketBlue.style.top = posRacketBlueY + 'px';
+        racketBlue.style.left = field.clientWidth - racketBlue.clientWidth + 'px';
+
+        if(posBallX + speedX + ball.clientWidth > field.clientWidth  || posBallX + speedX < 0) {
+            setTimeout(function () {
+                scoreUpdate();
+                score.textContent = scoreGreenGamer + ":" + scoreBlueGamer; //рисуем счет на доске
+            }, 10);
+            posBallX = 300;
+            posBallY = 200;
+            return false;
+        }
+        else {
+            requestAnimationFrame(draw);
+        }
+    }
+
+
+
+
+    if(pressedShift || pressedArrowUp) {
+        posRacketGreenY -= 7;
+    }
+    else if(pressedCtrl || pressedArrowDown) {
+        posRacketGreenY += 7;
+    } 
+
+    document.addEventListener('keydown', function (e) {
+        if(e.keyCode === 16 ){
+            pressedShift = true;
+            console.log('up');
+        }
+        if(e.keyCode === 17 ){
+            pressedCtrl = true;
+            console.log('down');
+        }
+        if(e.keyCode === 38 ){
+            pressedArrowUp = true;
+            console.log('up');
+        }
+        if(e.keyCode === 40 ){
+            pressedArrowDown = true;
+            console.log('up');
+        }
+    });
+    document.addEventListener('keyup', function (e) {
+        if(e.keyCode === 16 ){
+            pressedShift = false;
+            console.log('up');
+        }
+        if(e.keyCode === 17 ){
+            pressedCtrl = false;
+            console.log('down');
+        }
+        if(e.keyCode === 38 ){
+            pressedArrowUp = false;
+            console.log('up');
+        }
+        if(e.keyCode === 40 ){
+            pressedArrowDown = false;
+            console.log('up');
+        }
+    });
+
+</script>
+</body>
+</html>
